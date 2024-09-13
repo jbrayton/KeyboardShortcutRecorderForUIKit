@@ -1,6 +1,5 @@
 //
 //  KEYKeyboardShortcutUnitTest.swift
-//  KeyboardShortcutRecorderForUIKit
 //
 //  Created by John Brayton on 9/11/24.
 //

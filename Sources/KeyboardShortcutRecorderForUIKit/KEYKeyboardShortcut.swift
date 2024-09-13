@@ -1,6 +1,5 @@
 //
 //  KEYKeyboardShortcut.swift
-//  KeyboardExperiment
 //
 //  Created by John Brayton on 9/10/24.
 //
@@ -42,7 +41,7 @@ public struct KEYKeyboardShortcut : Codable {
         try container.encode(self.modifierFlags.rawValue, forKey: .modifierFlags)
     }
     
-    init( input: String, modifierFlags: UIKeyModifierFlags ) {
+    public init( input: String, modifierFlags: UIKeyModifierFlags ) {
         self.input = input
         self.modifierFlags = modifierFlags
     }
