@@ -6,21 +6,55 @@
 
 import UIKit
 
-public class KEYKeyboardField : UITextField {
+public class KEYKeyboardField : UIControl {
     
+    // MARK: Constants
+    
+    static let focusedPlaceholderText = String.localizedStringWithFormat("Press Shortcut")
+    static let unfocusedPlaceholderText = String.localizedStringWithFormat("Record Shortcut")
+    
+    // MARK: Simple variables
+    
+    var label: UILabel!
     public weak var shortcutFieldDelegate: KEYKeyboardFieldDelegateType?
+    var widthConstraint: NSLayoutConstraint!
     
-    let focusedPlaceholderText = String.localizedStringWithFormat("Press Shortcut")
-    let unfocusedPlaceholderText = String.localizedStringWithFormat("Record Shortcut")
+    // MARK: The shortcut itself
     
-    public var placeholderFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
+    public var shortcut: KEYKeyboardShortcut? {
         didSet {
-            self.updateAttributedPlaceholder()
+            self.updateLabel()
+        }
+    }
+    
+    // MARK: Colors and fonts
+    
+    public var textColor = UIColor.label {
+        didSet {
+            self.updateLabel()
+        }
+    }
+    public var disabledTextColor = UIColor.tertiaryLabel {
+        didSet {
+            self.updateLabel()
+        }
+    }
+    
+    public var placeholderTextColor = UIColor.secondaryLabel {
+        didSet {
+            self.updateLabel()
+        }
+    }
+    
+    public var font: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
+        didSet {
+            self.label.font = font
+            self.widthConstraint.constant = KEYKeyboardField.width(forFont: font)
         }
     }
     public var placeholderColor = UIColor.placeholderText {
         didSet {
-            self.updateAttributedPlaceholder()
+            self.updateLabel()
         }
     }
     
@@ -39,35 +73,62 @@ public class KEYKeyboardField : UITextField {
         }
     }
     
+    public var disabledBezelColor = UIColor.secondaryLabel {
+        didSet {
+            if !self.isFirstResponder {
+                self.setNeedsDisplay()
+            }
+        }
+    }
+    
+    // MARK: Initializers
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.delegate = self
-        self.updatePlaceholderText(unfocusedPlaceholderText)
-        self.autocorrectionType = .no
-        self.autocapitalizationType = .none
-        self.borderStyle = .none
-        self.clearButtonMode = .always
-        self.tintColor = .clear
-        self.textAlignment = .center
-   }
+        self.sendActions(for: .allEditingEvents)
+        self.isUserInteractionEnabled = true
+        self.backgroundColor = .clear
+        self.label = UILabel()
+        self.label.translatesAutoresizingMaskIntoConstraints = false
+        self.label.textAlignment = .center
+        self.label.font = font
+        self.addSubview(self.label)
+        let topBottomSpacing: CGFloat = 5.0
+        
+#warning("trailing anchor should account for clear button when shortcut is non-nil")
+        self.widthConstraint = self.widthAnchor.constraint(equalToConstant: KEYKeyboardField.width(forFont: self.font))
+        self.addConstraints([
+            self.label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            self.label.topAnchor.constraint(equalTo: self.topAnchor, constant: topBottomSpacing),
+            self.label.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0-topBottomSpacing),
+            self.label.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            self.widthConstraint,
+        ])
+        self.updateLabel()
+    }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public var shortcut: KEYKeyboardShortcut? {
+    override public var isEnabled: Bool {
         didSet {
-            if let shortcut {
-                self.text = shortcut.userDisplayDescription
-            } else {
-                self.text = ""
+            self.updateLabel()
+            self.setNeedsDisplay()
+            if !isEnabled && isFirstResponder {
+                let _ = self.endEditing(true)
             }
         }
     }
     
+    // MARK: UIView Methods
+    
     override public var intrinsicContentSize: CGSize {
-        var result = super.intrinsicContentSize
+        var result = CGSize()
         result.height = result.height + 10.0
+        let attributed = NSAttributedString(string: "Record Shortcut", attributes: [.font: self.font])
+        result.width = attributed.size().width + 10.0
         return result
     }
     
@@ -80,21 +141,71 @@ public class KEYKeyboardField : UITextField {
             border.stroke()
         } else {
             let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: 10.0)
-            self.unfocusedBezelColor.setStroke()
+            if self.isEnabled {
+                self.unfocusedBezelColor.setStroke()
+            } else {
+                self.disabledBezelColor.setStroke()
+            }
             border.lineWidth = 1.0
             border.stroke()
         }
     }
     
-    override public func textRect(forBounds bounds: CGRect) -> CGRect {
-        if self.text?.isEmpty == false {
-            return CGRect(x: 14, y: 0, width: bounds.size.width - (3*14), height: bounds.height)
+    // MARK: Update the label based on a shortcut or first responder change
+    
+    func updateLabel() {
+        if let shortcut = self.shortcut {
+            self.label.text = shortcut.userDisplayDescription
+            if self.isEnabled {
+                self.label.textColor = self.textColor
+            } else {
+                self.label.textColor = self.disabledTextColor
+            }
+        } else if self.isFirstResponder {
+            self.label.text = String.localizedStringWithFormat("Press Shortcut")
+            self.label.textColor = self.placeholderColor
         } else {
-            return bounds
+            self.label.text = String.localizedStringWithFormat("Record Shortcut")
+            if self.isEnabled {
+                self.label.textColor = self.placeholderColor
+            } else {
+                self.label.textColor = self.disabledTextColor
+            }
         }
     }
     
+    // MARK: First Responder
     
+    public override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    public override var canResignFirstResponder: Bool {
+        return true
+    }
+    
+    override public func becomeFirstResponder() -> Bool {
+        let result = super.becomeFirstResponder()
+        self.updateLabel()
+        self.setNeedsDisplay()
+        return result
+    }
+    
+    override public func resignFirstResponder() -> Bool {
+        let result = super.resignFirstResponder()
+        self.updateLabel()
+        self.setNeedsDisplay()
+        return result
+    }
+    
+    // MARK: Handle Touch
+    
+    public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        self.becomeFirstResponder()
+        return true
+    }
+    
+    // MARK: Keyboard Press Events
     
     override public func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         guard self.isFirstResponder else {
@@ -105,18 +216,31 @@ public class KEYKeyboardField : UITextField {
             if let key = press.key {
                 
                 let characters = key.charactersIgnoringModifiers
-
+                
                 if key.characters == UIKeyCommand.inputEscape {
                     let _ = self.endEditing(true)
                     return
                 }
                 
-
+                if key.characters == UIKeyCommand.inputDelete {
+                    Task { [weak self] in
+                        if self?.shortcut != nil {
+                            self?.shortcut = nil
+                            await self?.shortcutFieldDelegate?.setShortcut(shortcut: nil)
+                        }
+                    }
+                    let _ = self.endEditing(true)
+                    return
+                }
+                
+                
                 if !characters.isEmpty {
                     Task { [weak self] in
                         let newShortcut = KEYKeyboardShortcut(input: characters, modifierFlags: key.modifierFlags)
-                        if await self?.shortcutFieldDelegate?.setShortcut(shortcut: newShortcut) == true {
-                            self?.shortcut = newShortcut
+                        if self?.shortcut != newShortcut {
+                            if await self?.shortcutFieldDelegate?.setShortcut(shortcut: newShortcut) == true {
+                                self?.shortcut = newShortcut
+                            }
                         }
                     }
                     let _ = self.endEditing(true)
@@ -143,44 +267,10 @@ public class KEYKeyboardField : UITextField {
         }
     }
     
-    private func updatePlaceholderText( _ value: String ) {
-        self.attributedPlaceholder = NSAttributedString(string: value, attributes: [.font: self.placeholderFont, .foregroundColor: self.placeholderColor])
-    }
+    // MARK: Width
     
-    private func updateAttributedPlaceholder() {
-        if self.isFirstResponder {
-            self.updatePlaceholderText(focusedPlaceholderText)
-        } else {
-            self.updatePlaceholderText(unfocusedPlaceholderText)
-        }
-    }
-    
-}
-
-extension KEYKeyboardField : UITextFieldDelegate {
-    
-    public func textFieldShouldClear(_ textField: UITextField) -> Bool {
-        self.shortcut = nil
-        let _ = self.becomeFirstResponder()
-        Task { [weak self] in
-            // It is assumed that setting the shortcut to nil is always valid.
-            let _ = await self?.shortcutFieldDelegate?.setShortcut(shortcut: nil)
-        }
-        return false
-    }
-    
-    public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        return false
-    }
-    
-    public func textFieldDidBeginEditing(_ textField: UITextField) {
-        self.updateAttributedPlaceholder()
-        self.setNeedsDisplay()
-    }
-    
-    public func textFieldDidEndEditing(_ textField: UITextField) {
-        self.updateAttributedPlaceholder()
-        self.setNeedsDisplay()
+    static func width( forFont font: UIFont ) -> CGFloat {
+        return NSAttributedString(string: KEYKeyboardField.unfocusedPlaceholderText, attributes: [.font: font]).size().width + 40.0
     }
     
 }

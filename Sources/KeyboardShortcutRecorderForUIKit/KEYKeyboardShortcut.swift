@@ -6,7 +6,7 @@
 
 import UIKit
 
-public struct KEYKeyboardShortcut : Codable {
+public struct KEYKeyboardShortcut : Codable, Equatable {
 
     // Some of this was copied directly from KeyboardShortcuts by Sindre Sorhus.
     // https://github.com/sindresorhus/KeyboardShortcuts/blob/main/license
