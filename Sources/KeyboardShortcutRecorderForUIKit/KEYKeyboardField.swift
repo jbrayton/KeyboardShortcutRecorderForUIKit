@@ -16,14 +16,16 @@ public class KEYKeyboardField : UIControl {
     // MARK: Simple variables
     
     var label: UILabel!
+    var clearButton: KEYClearButton!
     public weak var shortcutFieldDelegate: KEYKeyboardFieldDelegateType?
     var widthConstraint: NSLayoutConstraint!
+    var labelTrailingConstraint: NSLayoutConstraint!
     
     // MARK: The shortcut itself
     
     public var shortcut: KEYKeyboardShortcut? {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
         }
     }
     
@@ -31,18 +33,18 @@ public class KEYKeyboardField : UIControl {
     
     public var textColor = UIColor.label {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
         }
     }
     public var disabledTextColor = UIColor.tertiaryLabel {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
         }
     }
     
     public var placeholderTextColor = UIColor.secondaryLabel {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
         }
     }
     
@@ -54,7 +56,7 @@ public class KEYKeyboardField : UIControl {
     }
     public var placeholderColor = UIColor.placeholderText {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
         }
     }
     
@@ -81,6 +83,18 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
+    public var enabledClearButtonColor = UIColor.label {
+    	didSet {
+    		self.clearButton.enabledColor = self.enabledClearButtonColor
+    	}
+    }
+    
+    public var disabledClearButtonColor = UIColor.label {
+    	didSet {
+    		self.clearButton.disabledColor = self.disabledClearButtonColor
+    	}
+    }
+    
     // MARK: Initializers
     
     override init(frame: CGRect) {
@@ -92,20 +106,35 @@ public class KEYKeyboardField : UIControl {
         self.label.translatesAutoresizingMaskIntoConstraints = false
         self.label.textAlignment = .center
         self.label.font = font
+        
+        self.clearButton = KEYClearButton()
+        self.clearButton.translatesAutoresizingMaskIntoConstraints = false
+        self.clearButton.addTarget(self, action: #selector(handleClearButton(_:)), for: .touchUpInside)
+        self.addSubview(self.clearButton)
         self.addSubview(self.label)
         let topBottomSpacing: CGFloat = 5.0
         
-#warning("trailing anchor should account for clear button when shortcut is non-nil")
+        if self.shortcut == nil {
+            self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+        } else {
+            self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.clearButton.centerXAnchor)
+        }
+        
         self.widthConstraint = self.widthAnchor.constraint(equalToConstant: KEYKeyboardField.width(forFont: self.font))
         self.addConstraints([
             self.label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             self.label.topAnchor.constraint(equalTo: self.topAnchor, constant: topBottomSpacing),
             self.label.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0-topBottomSpacing),
             self.label.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            self.labelTrailingConstraint,
             self.widthConstraint,
+            
+            self.clearButton.heightAnchor.constraint(equalTo: self.heightAnchor),
+            self.clearButton.widthAnchor.constraint(equalTo: self.heightAnchor),
+            self.clearButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            self.clearButton.trailingAnchor.constraint(equalTo: self.trailingAnchor),
         ])
-        self.updateLabel()
+        self.updateSubviews()
     }
     
     required init?(coder: NSCoder) {
@@ -114,11 +143,12 @@ public class KEYKeyboardField : UIControl {
     
     override public var isEnabled: Bool {
         didSet {
-            self.updateLabel()
+            self.updateSubviews()
             self.setNeedsDisplay()
             if !isEnabled && isFirstResponder {
                 let _ = self.endEditing(true)
             }
+            self.clearButton.isEnabled = self.isEnabled
         }
     }
     
@@ -135,9 +165,9 @@ public class KEYKeyboardField : UIControl {
     override public func draw(_ rect: CGRect) {
         super.draw(rect)
         if self.isFirstResponder {
-            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 2, dy: 2), cornerRadius: 10.0)
+            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: 10.0)
             self.focusedBezelColor.setStroke()
-            border.lineWidth = 4.0
+            border.lineWidth = 2.0
             border.stroke()
         } else {
             let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: 10.0)
@@ -151,9 +181,27 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
+    // MARK: Handle clear button
+    
+    @objc func handleClearButton( _ input: KEYClearButton ) {
+        self.clearShortcut()
+    }
+    
+    func clearShortcut() {
+        Task { [weak self] in
+            if self?.shortcut != nil {
+                self?.shortcut = nil
+                await self?.shortcutFieldDelegate?.setShortcut(shortcut: nil)
+            }
+            if self?.isFirstResponder == false {
+                let _ = self?.becomeFirstResponder()
+            }
+        }
+    }
+    
     // MARK: Update the label based on a shortcut or first responder change
     
-    func updateLabel() {
+    func updateSubviews() {
         if let shortcut = self.shortcut {
             self.label.text = shortcut.userDisplayDescription
             if self.isEnabled {
@@ -172,6 +220,16 @@ public class KEYKeyboardField : UIControl {
                 self.label.textColor = self.disabledTextColor
             }
         }
+        self.clearButton.isHidden = self.shortcut == nil
+        self.removeConstraint(self.labelTrailingConstraint)
+        if self.shortcut == nil {
+            print("trailing anchors equal")
+            self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+        } else {
+            print("trailing half")
+            self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.clearButton.centerXAnchor)
+        }
+        self.addConstraint(self.labelTrailingConstraint)
     }
     
     // MARK: First Responder
@@ -186,14 +244,14 @@ public class KEYKeyboardField : UIControl {
     
     override public func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
-        self.updateLabel()
+        self.updateSubviews()
         self.setNeedsDisplay()
         return result
     }
     
     override public func resignFirstResponder() -> Bool {
         let result = super.resignFirstResponder()
-        self.updateLabel()
+        self.updateSubviews()
         self.setNeedsDisplay()
         return result
     }
@@ -223,16 +281,9 @@ public class KEYKeyboardField : UIControl {
                 }
                 
                 if key.characters == UIKeyCommand.inputDelete {
-                    Task { [weak self] in
-                        if self?.shortcut != nil {
-                            self?.shortcut = nil
-                            await self?.shortcutFieldDelegate?.setShortcut(shortcut: nil)
-                        }
-                    }
-                    let _ = self.endEditing(true)
+                    self.clearShortcut()
                     return
                 }
-                
                 
                 if !characters.isEmpty {
                     Task { [weak self] in
