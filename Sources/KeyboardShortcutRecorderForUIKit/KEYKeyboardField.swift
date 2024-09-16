@@ -223,10 +223,8 @@ public class KEYKeyboardField : UIControl {
         self.clearButton.isHidden = self.shortcut == nil
         self.removeConstraint(self.labelTrailingConstraint)
         if self.shortcut == nil {
-            print("trailing anchors equal")
             self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         } else {
-            print("trailing half")
             self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.clearButton.centerXAnchor)
         }
         self.addConstraint(self.labelTrailingConstraint)

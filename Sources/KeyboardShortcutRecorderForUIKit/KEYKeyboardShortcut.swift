@@ -6,7 +6,7 @@
 
 import UIKit
 
-public struct KEYKeyboardShortcut : Codable, Equatable {
+public struct KEYKeyboardShortcut : Equatable {
 
     // Some of this was copied directly from KeyboardShortcuts by Sindre Sorhus.
     // https://github.com/sindresorhus/KeyboardShortcuts/blob/main/license
@@ -27,33 +27,14 @@ public struct KEYKeyboardShortcut : Codable, Equatable {
         UIKeyCommand.inputRightArrow: "→",
     ]
     
-    enum CodingKeys: String, CodingKey {
-        case input
-        case modifierFlags
-    }
-
     let input: String
     let modifierFlags: UIKeyModifierFlags
-    
-    public func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(self.input, forKey: .input)
-        try container.encode(self.modifierFlags.rawValue, forKey: .modifierFlags)
-    }
     
     public init( input: String, modifierFlags: UIKeyModifierFlags ) {
         self.input = input
         self.modifierFlags = modifierFlags
     }
     
-    public init(from decoder: any Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        let input = try values.decode(String.self, forKey: .input)
-        let modifierFlagsRaw = try values.decode(Int.self, forKey: .modifierFlags)
-        self.input = input
-        self.modifierFlags = UIKeyModifierFlags(rawValue: modifierFlagsRaw)
-    }
-
     @MainActor
     var userDisplayDescription: String {
         var result = ""
