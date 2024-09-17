@@ -36,7 +36,7 @@ public struct KEYKeyboardShortcut : Equatable {
     }
     
     @MainActor
-    var userDisplayDescription: String {
+    public var userDisplayDescription: String {
         var result = ""
         if self.modifierFlags.contains(.control) {
             result = result + "^"
@@ -49,6 +49,25 @@ public struct KEYKeyboardShortcut : Equatable {
         }
         if self.modifierFlags.contains(.command) {
             result = result + "⌘"
+        }
+        result = result + KEYKeyboardShortcut.characterString(forInput: self.input)
+        return result
+    }
+    
+    @MainActor
+    public var accessibilityDescription: String {
+        var result = ""
+        if self.modifierFlags.contains(.control) {
+            result = result + "control "
+        }
+        if self.modifierFlags.contains(.alternate) {
+            result = result + "option "
+        }
+        if self.modifierFlags.contains(.shift) {
+            result = result + "shift "
+        }
+        if self.modifierFlags.contains(.command) {
+            result = result + "command "
         }
         result = result + KEYKeyboardShortcut.characterString(forInput: self.input)
         return result

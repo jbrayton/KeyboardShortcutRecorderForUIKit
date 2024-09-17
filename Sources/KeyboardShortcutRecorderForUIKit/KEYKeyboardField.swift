@@ -196,6 +196,7 @@ public class KEYKeyboardField : UIControl {
             if self?.isFirstResponder == false {
                 let _ = self?.becomeFirstResponder()
             }
+            UIAccessibility.post(notification: .announcement, argument: KEYKeyboardField.focusedPlaceholderText)
         }
     }
     
@@ -204,23 +205,27 @@ public class KEYKeyboardField : UIControl {
     func updateSubviews() {
         if let shortcut = self.shortcut {
             self.label.text = shortcut.userDisplayDescription
+            self.label.accessibilityLabel = shortcut.accessibilityDescription
             if self.isEnabled {
                 self.label.textColor = self.textColor
             } else {
                 self.label.textColor = self.disabledTextColor
             }
         } else if self.isFirstResponder {
-            self.label.text = String.localizedStringWithFormat("Press Shortcut")
+            self.label.text = KEYKeyboardField.focusedPlaceholderText
             self.label.textColor = self.placeholderColor
+            self.label.accessibilityLabel = KEYKeyboardField.focusedPlaceholderText
         } else {
-            self.label.text = String.localizedStringWithFormat("Record Shortcut")
+            self.label.text = KEYKeyboardField.unfocusedPlaceholderText
             if self.isEnabled {
                 self.label.textColor = self.placeholderColor
             } else {
                 self.label.textColor = self.disabledTextColor
             }
+            self.label.accessibilityLabel = KEYKeyboardField.unfocusedPlaceholderText
         }
         self.clearButton.isHidden = self.shortcut == nil
+        self.clearButton.isAccessibilityElement = false
         self.removeConstraint(self.labelTrailingConstraint)
         if self.shortcut == nil {
             self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.trailingAnchor)
@@ -244,6 +249,7 @@ public class KEYKeyboardField : UIControl {
         let result = super.becomeFirstResponder()
         self.updateSubviews()
         self.setNeedsDisplay()
+        UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Enter the new shortcut on a hardware keyboard."))
         return result
     }
     
@@ -275,6 +281,11 @@ public class KEYKeyboardField : UIControl {
                 
                 if key.characters == UIKeyCommand.inputEscape {
                     let _ = self.endEditing(true)
+                    if let shortcut = self.shortcut {
+                        UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut left at %@", shortcut.userDisplayDescription))
+                    } else {
+                        UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut left blank"))
+                    }
                     return
                 }
                 
@@ -289,6 +300,7 @@ public class KEYKeyboardField : UIControl {
                         if self?.shortcut != newShortcut {
                             if await self?.shortcutFieldDelegate?.setShortcut(shortcut: newShortcut) == true {
                                 self?.shortcut = newShortcut
+                                UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut set to %@", newShortcut.accessibilityDescription))
                             }
                         }
                     }
