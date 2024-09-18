@@ -25,10 +25,23 @@ public struct KEYKeyboardShortcut : Equatable {
         UIKeyCommand.inputDownArrow: "↓",
         UIKeyCommand.inputLeftArrow: "←",
         UIKeyCommand.inputRightArrow: "→",
+        
+        UIKeyCommand.f1: "F1",
+        UIKeyCommand.f2: "F2",
+        UIKeyCommand.f3: "F3",
+        UIKeyCommand.f4: "F4",
+        UIKeyCommand.f5: "F5",
+        UIKeyCommand.f6: "F6",
+        UIKeyCommand.f7: "F7",
+        UIKeyCommand.f8: "F8",
+        UIKeyCommand.f9: "F9",
+        UIKeyCommand.f10: "F10",
+        UIKeyCommand.f11: "F11",
+        UIKeyCommand.f12: "F12"
     ]
     
-    let input: String
-    let modifierFlags: UIKeyModifierFlags
+    public let input: String
+    public let modifierFlags: UIKeyModifierFlags
     
     public init( input: String, modifierFlags: UIKeyModifierFlags ) {
         self.input = input
