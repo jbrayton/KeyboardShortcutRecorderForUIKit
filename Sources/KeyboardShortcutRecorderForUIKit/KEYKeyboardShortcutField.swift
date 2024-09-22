@@ -313,7 +313,17 @@ public class KEYKeyboardShortcutField : UIControl {
                 
                 if !characters.isEmpty {
                     Task { [weak self] in
-                        let newShortcut = KEYKeyboardShortcut(input: characters, modifierFlags: key.modifierFlags)
+                        
+                        var modifierFlags = key.modifierFlags
+                        
+                        let ignoreFlags: [UIKeyModifierFlags] = [.alphaShift, .numericPad]
+                        for ignoreFlag in ignoreFlags {
+                            if modifierFlags.contains(ignoreFlag) {
+                                modifierFlags.remove(ignoreFlag)
+                            }
+                        }
+
+                        let newShortcut = KEYKeyboardShortcut(input: characters, modifierFlags: modifierFlags)
                         if self?.shortcut != newShortcut {
                             if await self?.shortcutFieldDelegate?.setShortcut(shortcut: newShortcut) == true {
                                 self?.shortcut = newShortcut
