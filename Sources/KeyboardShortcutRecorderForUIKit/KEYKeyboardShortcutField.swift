@@ -1,12 +1,12 @@
 //
-//  KEYKeyboardField.swift
+//  KEYKeyboardShortcutField.swift
 //
 //  Created by John Brayton on 9/10/24.
 //
 
 import UIKit
 
-public class KEYKeyboardField : UIControl {
+public class KEYKeyboardShortcutField : UIControl {
     
     // MARK: Constants
     
@@ -64,13 +64,13 @@ public class KEYKeyboardField : UIControl {
             self.updateSubviews()
         }
     }
-    public var disabledTextColor = UIColor.tertiaryLabel {
+    public var disabledTextColor = UIColor.secondaryLabel {
         didSet {
             self.updateSubviews()
         }
     }
     
-    public var placeholderTextColor = UIColor.secondaryLabel {
+    public var placeholderTextColor = UIColor.placeholderText {
         didSet {
             self.updateSubviews()
         }
@@ -79,7 +79,7 @@ public class KEYKeyboardField : UIControl {
     public var font: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
         didSet {
             self.label.font = font
-            self.widthConstraint.constant = KEYKeyboardField.width(forFont: font)
+            self.widthConstraint.constant = KEYKeyboardShortcutField.width(forFont: font)
         }
     }
     public var placeholderColor = UIColor.placeholderText {
@@ -88,14 +88,14 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
-    public var focusedBezelColor = UIColor.label {
+    public var focusedBezelColor = UIColor.secondaryLabel {
         didSet {
             if self.isFirstResponder {
                 self.setNeedsDisplay()
             }
         }
     }
-    public var unfocusedBezelColor = UIColor.secondaryLabel {
+    public var unfocusedBezelColor = UIColor.systemGray2 {
         didSet {
             if !self.isFirstResponder {
                 self.setNeedsDisplay()
@@ -103,7 +103,7 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
-    public var disabledBezelColor = UIColor.secondaryLabel {
+    public var disabledBezelColor = UIColor.systemGray4 {
         didSet {
             if !self.isFirstResponder {
                 self.setNeedsDisplay()
@@ -111,13 +111,13 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
-    public var enabledClearButtonColor = UIColor.label {
+    public var enabledClearButtonColor = UIColor.secondaryLabel {
     	didSet {
     		self.clearButton.enabledColor = self.enabledClearButtonColor
     	}
     }
     
-    public var disabledClearButtonColor = UIColor.label {
+    public var disabledClearButtonColor = UIColor.tertiaryLabel {
     	didSet {
     		self.clearButton.disabledColor = self.disabledClearButtonColor
     	}
@@ -137,6 +137,8 @@ public class KEYKeyboardField : UIControl {
         
         self.clearButton = KEYClearButton()
         self.clearButton.translatesAutoresizingMaskIntoConstraints = false
+        self.clearButton.enabledColor = self.enabledClearButtonColor
+        self.clearButton.disabledColor = self.disabledClearButtonColor
         self.clearButton.addTarget(self, action: #selector(handleClearButton(_:)), for: .touchUpInside)
         self.addSubview(self.clearButton)
         self.addSubview(self.label)
@@ -148,7 +150,7 @@ public class KEYKeyboardField : UIControl {
             self.labelTrailingConstraint = self.label.trailingAnchor.constraint(equalTo: self.clearButton.centerXAnchor)
         }
         
-        self.widthConstraint = self.widthAnchor.constraint(equalToConstant: KEYKeyboardField.width(forFont: self.font))
+        self.widthConstraint = self.widthAnchor.constraint(equalToConstant: KEYKeyboardShortcutField.width(forFont: self.font))
         self.addConstraints([
             self.label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             self.label.topAnchor.constraint(equalTo: self.topAnchor, constant: topBottomSpacing),
@@ -180,31 +182,22 @@ public class KEYKeyboardField : UIControl {
         }
     }
     
-    // MARK: UIView Methods
-    
-    override public var intrinsicContentSize: CGSize {
-        var result = CGSize()
-        result.height = result.height + 10.0
-        let attributed = NSAttributedString(string: KEYKeyboardField.unfocusedPlaceholderText, attributes: [.font: self.font])
-        result.width = attributed.size().width + 10.0
-        return result
-    }
-    
     override public func draw(_ rect: CGRect) {
+        let cornerRadius = 5.0
         super.draw(rect)
         if self.isFirstResponder {
-            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: 10.0)
+            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: cornerRadius)
             self.focusedBezelColor.setStroke()
             border.lineWidth = 2.0
             border.stroke()
         } else {
-            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: 10.0)
+            let border = UIBezierPath(roundedRect: self.bounds.insetBy(dx: 1, dy: 1), cornerRadius: cornerRadius)
             if self.isEnabled {
                 self.unfocusedBezelColor.setStroke()
             } else {
                 self.disabledBezelColor.setStroke()
             }
-            border.lineWidth = 1.0
+            border.lineWidth = 0.5
             border.stroke()
         }
     }
@@ -224,7 +217,7 @@ public class KEYKeyboardField : UIControl {
             if self?.isFirstResponder == false {
                 let _ = self?.becomeFirstResponder()
             }
-            UIAccessibility.post(notification: .announcement, argument: KEYKeyboardField.focusedPlaceholderText)
+            UIAccessibility.post(notification: .announcement, argument: KEYKeyboardShortcutField.focusedPlaceholderText)
         }
     }
     
@@ -240,17 +233,13 @@ public class KEYKeyboardField : UIControl {
                 self.label.textColor = self.disabledTextColor
             }
         } else if self.isFirstResponder {
-            self.label.text = KEYKeyboardField.focusedPlaceholderText
+            self.label.text = KEYKeyboardShortcutField.focusedPlaceholderText
             self.label.textColor = self.placeholderColor
-            self.label.accessibilityLabel = KEYKeyboardField.focusedPlaceholderText
+            self.label.accessibilityLabel = KEYKeyboardShortcutField.focusedPlaceholderText
         } else {
-            self.label.text = KEYKeyboardField.unfocusedPlaceholderText
-            if self.isEnabled {
-                self.label.textColor = self.placeholderColor
-            } else {
-                self.label.textColor = self.disabledTextColor
-            }
-            self.label.accessibilityLabel = KEYKeyboardField.unfocusedPlaceholderText
+            self.label.text = KEYKeyboardShortcutField.unfocusedPlaceholderText
+            self.label.textColor = self.placeholderColor
+            self.label.accessibilityLabel = KEYKeyboardShortcutField.unfocusedPlaceholderText
         }
         self.clearButton.isHidden = self.shortcut == nil
         self.clearButton.isAccessibilityElement = false
@@ -359,7 +348,7 @@ public class KEYKeyboardField : UIControl {
     // MARK: Width
     
     static func width( forFont font: UIFont ) -> CGFloat {
-        return NSAttributedString(string: KEYKeyboardField.unfocusedPlaceholderText, attributes: [.font: font]).size().width + 40.0
+        return NSAttributedString(string: KEYKeyboardShortcutField.unfocusedPlaceholderText, attributes: [.font: font]).size().width + 40.0
     }
     
 }
