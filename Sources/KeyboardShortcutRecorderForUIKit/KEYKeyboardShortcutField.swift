@@ -296,7 +296,7 @@ public class KEYKeyboardShortcutField : UIControl {
                 
                 let characters = key.charactersIgnoringModifiers
                 
-                if key.characters == UIKeyCommand.inputEscape {
+                if [UIKeyCommand.inputEscape, "\t"].contains(key.characters) {
                     let _ = self.endEditing(true)
                     if let shortcut = self.shortcut {
                         UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut left at %@", shortcut.userDisplayDescription))
