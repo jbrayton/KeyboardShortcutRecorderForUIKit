@@ -6,7 +6,7 @@ This is a custom control making it easy for record a keyboard shortcut for use w
 
 A sample project demonstrating this is [available in a separate repository](https://github.com/jbrayton/KeyboardShortcutRecorderSample).
 
-This project is heavily inspired by [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) by Sindre Sorhus, a library that performs a similar function for macOS. There are some code snippets directly copied from KeyboardShortcuts (with a copy of its license agreement). Unread uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) on macOS, and this library on iPadOS.
+This project is heavily inspired by [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) by [Sindre Sorhus](https://sindresorhus.com/), a library that performs a similar function for macOS. There are some code snippets directly copied from KeyboardShortcuts (with a copy of its license agreement). [Unread](https://www.goldenhillsoftware.com/unread/) uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) on macOS, and this library on iPadOS.
 
 ## Getting started
 
