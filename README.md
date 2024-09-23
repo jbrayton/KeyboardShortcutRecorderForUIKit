@@ -10,7 +10,11 @@ This project is heavily inspired by [KeyboardShortcuts](https://github.com/sindr
 
 ## Getting started
 
-### 1. Implement `KEYKeyboardFieldDelegateType`.
+### 1. Incorporate via Swift Package Manager.
+
+The GitHub URL is [https://github.com/jbrayton/KeyboardShortcutRecorderForUIKit](https://github.com/jbrayton/KeyboardShortcutRecorderForUIKit).
+
+### 2. Implement `KEYKeyboardFieldDelegateType`.
 
 ```swift
 public protocol KEYKeyboardFieldDelegateType : NSObject {
@@ -30,7 +34,7 @@ public protocol KEYKeyboardFieldDelegateType : NSObject {
 
 The caller is responsible for storing and using the shortcut as it sees fit. `KEYKeyboardShortcut` conforms to `Codable`, making it easy to store.
 
-### 2. Create the shortcut field.
+### 3. Create the shortcut field.
 
 Create the shortcut:
 
@@ -47,7 +51,7 @@ self.view.addConstraints([
 ])
 ```
 
-### 3. Use the shortcut for a UIKeyCommand.
+### 4. Use the shortcut for a UIKeyCommand.
 
 ```
 override var keyCommands: [UIKeyCommand]? {
