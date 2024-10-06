@@ -1,8 +1,8 @@
 # Keyboard Shortcut Recorder for UIKit
 
-This is a custom control making it easy for record a keyboard shortcut for use with a UIKeyCommand. It is primarily intended for use on iPad. It also works on iPhone.
+This is a custom control making it easy for record a keyboard shortcut for use with a UIKeyCommand. It is primarily intended for use on iPad. It also works on iPhone when a hardware keyboard is attached.
 
-![Screenshot of shortcut recorder](readme-images/control.jpeg)
+![Screenshot of shortcut recorder](readme-images/control.png)
 
 A sample project demonstrating this is [available in a separate repository](https://github.com/jbrayton/KeyboardShortcutRecorderSample).
 
