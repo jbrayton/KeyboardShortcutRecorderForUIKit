@@ -68,12 +68,6 @@ public class KEYKeyboardShortcutField : UIControl {
         }
     }
     
-    public var placeholderTextColor = UIColor.placeholderText {
-        didSet {
-            self.updateSubviews()
-        }
-    }
-    
     public var font: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
         didSet {
             self.label.font = font
@@ -202,7 +196,11 @@ public class KEYKeyboardShortcutField : UIControl {
             self.label.accessibilityLabel = KEYKeyboardShortcutField.focusedPlaceholderText
         } else {
             self.label.text = KEYKeyboardShortcutField.unfocusedPlaceholderText
-            self.label.textColor = self.placeholderColor
+            if self.isEnabled {
+                self.label.textColor = self.placeholderColor
+            } else {
+                self.label.textColor = self.disabledTextColor
+            }
             self.label.accessibilityLabel = KEYKeyboardShortcutField.unfocusedPlaceholderText
         }
     }
@@ -235,7 +233,7 @@ public class KEYKeyboardShortcutField : UIControl {
     // MARK: Handle Touch
     
     public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-        self.becomeFirstResponder()
+        let _ = self.becomeFirstResponder()
         return true
     }
     
