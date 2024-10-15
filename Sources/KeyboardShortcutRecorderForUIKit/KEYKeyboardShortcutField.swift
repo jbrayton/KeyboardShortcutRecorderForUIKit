@@ -283,8 +283,8 @@ public class KEYKeyboardShortcutField : UIControl {
                                 UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut set to %@", newShortcut.accessibilityDescription))
                             }
                         }
+                        let _ = self?.endEditing(true)
                     }
-                    let _ = self.endEditing(true)
                 }
             }
         }
