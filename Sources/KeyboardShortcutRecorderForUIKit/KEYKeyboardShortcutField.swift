@@ -278,9 +278,12 @@ public class KEYKeyboardShortcutField : UIControl {
 
                         let newShortcut = KEYKeyboardShortcut(input: characters, modifierFlags: modifierFlags)
                         if self?.shortcut != newShortcut {
+                            let priorShortcut = self?.shortcut
+                            self?.shortcut = newShortcut
                             if await self?.shortcutFieldDelegate?.setShortcut(shortcut: newShortcut) == true {
-                                self?.shortcut = newShortcut
                                 UIAccessibility.post(notification: .announcement, argument: String.localizedStringWithFormat("Shortcut set to %@", newShortcut.accessibilityDescription))
+                            } else {
+                                self?.shortcut = priorShortcut
                             }
                         }
                         let _ = self?.endEditing(true)
